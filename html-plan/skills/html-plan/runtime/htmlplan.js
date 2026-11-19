@@ -436,6 +436,24 @@ const capHtml = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
 function toast(msg) { const t = h('div', { class: 'nw-toast' }, msg); document.body.append(t); setTimeout(() => t.remove(), 1600); }
 function errBox(el, errors, what) { if (!errors.length) return; el.prepend(h('div', { class: 'nw-err' }, `${what}: \n` + errors.join('\n'))); console.warn(`[htmlplan] ${what}`, errors); }
 
+/* ── theme: system, light or dark; the choice is kept per browser, for every plan ── */
+const THEME_KEY = 'htmlplan:theme'; const THEMES = ['system', 'light', 'dark'];
+const readTheme = () => { try { const t = localStorage.getItem(THEME_KEY); return THEMES.includes(t) ? t : 'system'; } catch { return 'system'; } };
+const applyTheme = (t) => { if (t === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; };
+if (readTheme() !== 'system') applyTheme(readTheme());   // before the first paint; "system" leaves the attribute to the host page
+const svgIcon = (d) => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const THEME_ICONS = {
+  system: svgIcon('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'),
+  light: svgIcon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+  dark: svgIcon('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
+};
+function themeButton() {
+  let cur = readTheme(); const b = h('button', { class: 'nw-theme-btn' });
+  const paint = () => { b.innerHTML = THEME_ICONS[cur]; const label = `Theme: ${cur} (click to change)`; b.title = label; b.setAttribute('aria-label', label); };
+  b.addEventListener('click', () => { cur = THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]; applyTheme(cur); try { localStorage.setItem(THEME_KEY, cur); } catch {} paint(); toast(`Theme: ${cur}`); });
+  paint(); return b;
+}
+
 /* ── state: answers, comments, drafts — persisted per document ── */
 const KEY = 'nw:' + location.pathname + ':' + document.title;
 const S = { defaults: {}, comments: {}, drafts: {}, strikes: {}, seen: {}, loaded: null };
@@ -1243,7 +1261,7 @@ define('doc-quote', (el) => {
 define('doc-changes', (el) => {
   const n = (k) => Math.max(0, parseInt(el.getAttribute(k), 10) || 0); const parts = [['add', n('new'), '+', 'new'], ['mod', n('changed'), '~', 'changed'], ['rem', n('deleted'), '−', 'deleted']].filter((x) => x[1]);
   const total = parts.reduce((a, x) => a + x[1], 0); if (!total) { el.hidden = true; return; }
-  el.replaceChildren(h('span', { class: 'ch-tag' }, 'Proposed'), h('b', null, `${total} file${total > 1 ? 's' : ''}`), ...parts.map((x) => h('span', { class: 'ch-n ' + x[0] }, h('b', null, x[2] + x[1]), ' ' + x[3])));
+  el.replaceChildren(h('span', { class: 'ch-tag' }, 'Proposed'), h('b', { class: 'ch-total' }, `${total} file${total > 1 ? 's' : ''}`), ...parts.map((x) => h('span', { class: 'ch-n ' + x[0] }, h('b', null, x[2] + x[1]), ' ' + x[3])));
 });
 
 /* ── doc-ask ──────────────────────────────────────── */
@@ -1287,6 +1305,8 @@ function boot() {
     if (tocMk) bar.firstChild.textContent = '☰';
     document.body.append(bar);
   } else if (tocMk) { bar = null; document.body.append(h('div', { class: 'nw-bar' }, h('button', { class: 'nw-toc-btn', style: 'display:block', onclick: () => openSheet('Contents', tocMk()) }, '☰'))); }
+  const themeBtn = themeButton(); const header = $('body > header');   // a page setting, so it sits by the title, not with the response actions
+  if (header) header.prepend(themeBtn); else { themeBtn.classList.add('loose'); document.body.append(themeBtn); }
   if (!feedbackOff && 'IntersectionObserver' in window) {   // a decision counts as opened once most of it has been on screen for a moment, or the reader touches it
     const io = new IntersectionObserver((ents) => ents.forEach((en) => { const a = en.target; clearTimeout(a._seenT); if (en.isIntersecting) a._seenT = setTimeout(() => markSeen(a), 900); }), { threshold: 0.4 });
     $$('doc-ask').forEach((a) => { io.observe(a); a.addEventListener('pointerdown', () => markSeen(a)); });
