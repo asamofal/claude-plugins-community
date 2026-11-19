@@ -40,7 +40,7 @@
 
 * { box-sizing: border-box; }
 html { overflow-x: hidden; background: var(--paper); color: var(--ink); font: 430 16px/1.6 var(--sans); -webkit-text-size-adjust: 100%; scroll-padding-top: 16px; }
-body { margin: 0; padding: 40px 20px 120px; overflow-x: hidden; overflow-x: clip; }   /* clip, so sticky rows still use the viewport */
+body { margin: 0; padding: 40px 20px 120px; overflow-x: hidden; overflow-x: clip; background: var(--paper); color: var(--ink); font: 430 16px/1.6 var(--sans); }   /* clip, so sticky rows still use the viewport; colors and type, because a host page (an artifact viewer) can style body itself */
 body > header, body > main, body > footer, body > section, body > article { max-width: var(--col); margin: 0 auto; }
 @media (min-width: 1180px) { body.has-toc { padding-left: 260px; } }
 
@@ -76,14 +76,14 @@ img, svg, video { max-width: 100%; height: auto; }
 .meta a { color: inherit; }
 doc-changes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 0 0 10px; font: 14px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 doc-changes > b { color: var(--ink); font-weight: 550; } doc-changes .ch-tag { font: 550 12px/1 var(--sans); padding: 4px 8px; border-radius: 99px; border: 1px dashed var(--ink-3); color: var(--ink-2); }
-doc-changes .ch-n b { font-weight: 600; } doc-changes .add b { color: var(--green); } doc-changes .mod b { color: var(--amber); } doc-changes .del b { color: var(--red); }
+doc-changes .ch-n b { font-weight: 600; } doc-changes .add b { color: var(--green); } doc-changes .mod b { color: var(--amber); } doc-changes .rem b { color: var(--red); }
 
 .tldr { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 18px; margin: 22px 0; box-shadow: var(--shadow); }
 .tldr > :last-child { margin-bottom: 0; }
 
 /* ── layout utilities ─────────────────────────────── */
 .wide { width: min(var(--wide), 100vw - 40px); position: relative; left: 50%; transform: translateX(-50%); }
-@media (min-width: 1180px) { body.has-toc .wide { width: min(var(--wide), 100vw - 300px); } }
+@media (min-width: 1180px) { :where(body.has-toc) .wide { width: min(var(--wide), 100vw - 300px); } }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; margin: 0 0 18px; align-items: start; }
 .cols.tight { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .cols > * { margin-bottom: 0; min-width: 0; }
