@@ -1111,7 +1111,7 @@ define('doc-tree', (el) => {
 });
 
 /* ── doc-mock / doc-shot ──────────────────────────── */
-const MOCK_BASE = `:host{all:initial;display:block} *,*::before,*::after{box-sizing:border-box} .nw-root{font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1b1a18;-webkit-font-smoothing:antialiased}
+const MOCK_BASE = `:host{all:initial;display:block} *,*::before,*::after{box-sizing:border-box} .nw-root{font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1b1a18;-webkit-font-smoothing:antialiased} .nw-root.none{color:var(--ink,#1b1a18)}
  .nw-root.terminal{font:13px/1.5 ui-monospace,"SF Mono",Menlo,monospace;color:#e6e3dc;background:#17161a;padding:12px 14px;white-space:pre-wrap} .nw-root.terminal b{color:#fff}.nw-root.terminal .dim{color:#7d7986}.nw-root.terminal .g{color:#7fd39a}.nw-root.terminal .r{color:#f38b7b}.nw-root.terminal .y{color:#e9c46a}.nw-root.terminal .b{color:#8ab4f8}.nw-root.terminal .m{color:#c79bf2}.nw-root.terminal .o{color:#f4a261}.nw-root.terminal .inv{background:#e6e3dc;color:#17161a}.nw-root.terminal .box{border:1px solid #4a4750;border-radius:6px;padding:6px 10px;margin:4px 0;display:block}
  [data-ref]{cursor:pointer;transition:outline-color .12s;outline:2px solid transparent;outline-offset:2px;border-radius:2px}[data-ref]:hover{outline-color:rgba(217,72,31,.55)}[data-ref].nw-on{outline-color:#d9481f}`;
 /** Numbered pins over a mock/shot. `layer` is an absolutely-positioned box matching the *content* (chrome excluded);
@@ -1129,7 +1129,7 @@ function mountPins(host, layer, keyBase, labelBase, getScale = () => 1, resolveR
   const list = h('ol', { class: 'nw-pin-list' }); pins.forEach((p) => list.append(h('li', null, p.getAttribute('title') ? h('b', null, p.getAttribute('title') + (p.innerHTML.trim() ? ' — ' : '')) : null, h('span', { html: p.innerHTML }))));
   host.append(list);
   const place = () => { const s = getScale(); const size = clamp(Math.round(24 * Math.sqrt(s)), 16, 24);
-    dots.forEach(({ dot, p }) => { let x, y; const ref = p.getAttribute('ref'); const anc = p.getAttribute('anchor') || 'tr'; let [dx, dy] = (p.getAttribute('offset') || '').split(',').map(parseFloat); if (isNaN(dx)) { dx = ref ? (/l/.test(anc) ? -1 : /r/.test(anc) ? 1 : 0) * size * 0.4 : 0; dy = ref ? (/t/.test(anc) ? -1 : /b/.test(anc) ? 1 : 0) * size * 0.4 : 0; }
+    dots.forEach(({ dot, p }) => { let x, y; const ref = p.getAttribute('ref'); const anc = p.getAttribute('anchor') || 'tr'; let [dx, dy] = (p.getAttribute('offset') || '').split(',').map(parseFloat); if (isNaN(dx)) { const out = size / 2 + 2; dx = ref ? (/l/.test(anc) ? -1 : /r/.test(anc) ? 1 : 0) * out : 0; dy = ref ? (/t/.test(anc) ? -1 : /b/.test(anc) ? 1 : 0) * out : 0; }   // a ref= pin sits just outside its target, so it never covers what it points at
       if (ref) { const r = resolveRef(ref, p.getAttribute('anchor') || 'tr'); if (r) { x = r.x; y = r.y; dot.classList.remove('lost'); dot.removeAttribute('title'); } else { x = 50; y = 50; dot.title = `ref="${ref}" not found`; dot.classList.add('lost'); } }
       else { [x, y] = (p.getAttribute('at') || '50,50').split(',').map(parseFloat); }
       dot.style.cssText = `left:calc(${x}% + ${dx || 0}px);top:calc(${y}% + ${dy || 0}px);width:${size}px;height:${size}px;font-size:${Math.round(size / 2)}px;line-height:${size - 4}px`; }); };
@@ -1241,7 +1241,7 @@ define('doc-quote', (el) => {
 
 /* ── doc-changes: the size of the proposed change, drawn like a diff stat ── */
 define('doc-changes', (el) => {
-  const n = (k) => Math.max(0, parseInt(el.getAttribute(k), 10) || 0); const parts = [['add', n('new'), '+', 'new'], ['mod', n('changed'), '~', 'changed'], ['del', n('deleted'), '−', 'deleted']].filter((x) => x[1]);
+  const n = (k) => Math.max(0, parseInt(el.getAttribute(k), 10) || 0); const parts = [['add', n('new'), '+', 'new'], ['mod', n('changed'), '~', 'changed'], ['rem', n('deleted'), '−', 'deleted']].filter((x) => x[1]);
   const total = parts.reduce((a, x) => a + x[1], 0); if (!total) { el.hidden = true; return; }
   el.replaceChildren(h('span', { class: 'ch-tag' }, 'Proposed'), h('b', null, `${total} file${total > 1 ? 's' : ''}`), ...parts.map((x) => h('span', { class: 'ch-n ' + x[0] }, h('b', null, x[2] + x[1]), ' ' + x[3])));
 });
